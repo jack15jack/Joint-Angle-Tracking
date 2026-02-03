@@ -213,8 +213,6 @@ def main():
                 left_ankle, right_ankle
             )
 
-            #TODO: for each (knee and ankle) plot a graph of both left and right angles over time 
-
             frame_index += 1
 
     capture.release()
