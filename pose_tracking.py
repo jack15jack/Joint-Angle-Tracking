@@ -1,6 +1,9 @@
 import cv2
 import csv
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import datetime
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
@@ -59,6 +62,7 @@ def draw_pose_landmarks(frame, pose_landmarks):
         (11, 12), (23, 24),  # shoulders & hips
         (12, 24), (11, 23),  # torso diagonals
         (27, 31), (29, 31),  # left feet
+        (27, 29), (28, 30),  # ankle-heel line
         (28, 32), (30, 32)   # right feet
     ]
 
@@ -67,6 +71,45 @@ def draw_pose_landmarks(frame, pose_landmarks):
         x1, y1 = int(pose_landmarks[start_idx].x * w), int(pose_landmarks[start_idx].y * h)
         x2, y2 = int(pose_landmarks[end_idx].x * w), int(pose_landmarks[end_idx].y * h)
         cv2.line(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+
+def plot_joint_angles(csv_path="joint_angles.csv"):
+    # Load the CSV
+    df = pd.read_csv(csv_path)
+    time_s = df["time_ms"] / 1000  # convert to seconds
+
+    # timestamp for filenames
+    timestamp_str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    # Plot knees
+    plt.figure(figsize=(10,5))
+    plt.plot(time_s, df["left_knee"], label="Left Knee", color="blue")
+    plt.plot(time_s, df["right_knee"], label="Right Knee", color="red")
+    plt.xlabel("Time (s)")
+    plt.ylabel("Angle (deg)")
+    plt.title("Knee Angles Over Time")
+    plt.legend()
+    plt.grid(True)
+
+    knee_filename = f"knee_angles_{timestamp_str}.png"
+    plt.savefig(knee_filename)
+    plt.close()  # close figure to free memory
+    print(f"Saved knee angles plot as {knee_filename}")
+
+    # Plot ankles
+    plt.figure(figsize=(10,5))
+    plt.plot(time_s, df["left_ankle"], label="Left Ankle", color="blue")
+    plt.plot(time_s, df["right_ankle"], label="Right Ankle", color="red")
+    plt.xlabel("Time (s)")
+    plt.ylabel("Angle (deg)")
+    plt.title("Ankle Angles Over Time")
+    plt.legend()
+    plt.grid(True)
+
+    ankle_filename = f"ankle_angles_{timestamp_str}.png"
+    plt.savefig(ankle_filename)
+    plt.close()
+    print(f"Saved ankle angles plot as {ankle_filename}")
+
 
 
 def main():
@@ -92,15 +135,17 @@ def main():
          int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT)))
     )
 
-    # csv setup
-    csv_file = open("joint_angles.csv", "w", newline="")
+    # create a new csv file with timestamp in filename
+    timestamp_str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    csv_filename = f"joint_angles_{timestamp_str}.csv"
+
+    csv_file = open(csv_filename, "w", newline="")
     csv_writer = csv.writer(csv_file)
     csv_writer.writerow([
         "time_ms", 
         "left_knee", "right_knee",
         "left_ankle", "right_ankle"
     ])
-
 
     # use to change model 
     model_path = "pose_landmarker_lite.task"
@@ -176,6 +221,9 @@ def main():
     vid_writer.release()
     cv2.destroyAllWindows()
     csv_file.close()
+    
+    return csv_filename
 
 if __name__ == "__main__":
-    main()
+    csv_file_created = main()
+    plot_joint_angles(csv_file_created)
