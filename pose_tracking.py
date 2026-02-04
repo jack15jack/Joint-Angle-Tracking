@@ -15,7 +15,6 @@ def lm(pose_landmarks, i):
            pose_landmarks[i].y,
            pose_landmarks[i].z]
 
-
 # basic angle computation
 def compute_angle (a, b, c):
     # convert to numpy arrays
@@ -33,7 +32,6 @@ def compute_angle (a, b, c):
     )
     return angle
 
-
 def write_angles_to_csv(writer, timestamp_ms,
                         left_knee, right_knee,
                         left_ankle, right_ankle):
@@ -42,7 +40,6 @@ def write_angles_to_csv(writer, timestamp_ms,
         left_knee, right_knee,
         left_ankle, right_ankle
     ])
-
 
 def draw_pose_landmarks(frame, pose_landmarks):
     
@@ -110,12 +107,9 @@ def plot_joint_angles(csv_path="joint_angles.csv"):
     plt.close()
     print(f"Saved ankle angles plot as {ankle_filename}")
 
-
-
 def main():
-
-    # Open video file
-    capture = cv2.VideoCapture("video.mp4")
+    # Open video file; USER: Change to video file name
+    capture = cv2.VideoCapture("video.MOV")
     if not capture.isOpened():
         raise RuntimeError("Error opening video file")
 
