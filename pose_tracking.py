@@ -39,7 +39,7 @@ def main():
     csv_writer, csv_filename, csv_file = create_csv_writer(OUTPUT_DIR)
 
     # use to change model 
-    model_path = "pose_landmarker_lite.task"
+    model_path = "pose_landmarker_heavy.task"
 
     BaseOptions = python.BaseOptions
     PoseLandmarker = vision.PoseLandmarker
