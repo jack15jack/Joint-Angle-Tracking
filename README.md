@@ -7,10 +7,11 @@ The angles of their knee and ankle joints at each point in time are calculated, 
 The following is a full description of each of the functions and what they do (nearly line by line):
 
 MAIN:
+- Create the output directory if it doesn't exist already.
 - Receive the video based off of filename using OpenCV's VideoCapture function. *FILENAME MUST BE CHANGED BY USER, WOULD BE 0 FOR REAL-TIME.* If the capture isn't opened, an error will throw.
 - The fps of the video is determined using OpenCV. If the fps isn't determined, an error will throw.
-- A video writer, from OpenCV's VideoWriter, is initialized for the skeleton overlay of the original video. New video will be named *video_masked.mp4.*
-- A CSV file is created. The name of the file is *joint_angles_{timestamp}.csv.* The top row has time_ms, left_knee, right_knee, left_ankle, right_ankle.
+- A video writer, from OpenCV's VideoWriter, is initialized for the skeleton overlay of the original video. New video will be named *video_masked.mp4.* and stored in the output folder
+- The CREATE_CSV_WRITER function is called to open the csv file to store joint angles.
 - The MediaPipe tracking model is determined using the file name of our .task file. This would need to be changed if we wanted a different tracking model.
 - The options of the tracking mode are set as base (with the model path being our .task file) and running mode of Video Vision Running Mode. *WOULD NEED TO CHANGE IF NOT USING STATIC VIDEO.*
 - The Pose Landmarker is created with those options. Starting a loop.
@@ -38,10 +39,10 @@ COMPUTE_ANGLE:
 - *Returns*: Angle in degrees.
 - *Brief*: Basic angle calculation using 3D coordinates.
 
-WRITE_ANGLES_TO_CSV:
-- *Parameters*: Writer, each column of the CSV.
-- *Returns*: none.
-- *Brief*: Helper to write the row onto the CSV (kind of useless in hindsight).
+CREATE_CSV_WRITER:
+- *Parameters*: output directory.
+- *Returns*: csv writer, csv filename, csv file.
+- *Brief*: Helper to create and open the csv file, set the csv writer, and write the top row of the csv file.
 
 DRAW_POSE_LANDMARKS:
 - *Parameters*: Frame, Pose Landmark.
@@ -49,6 +50,6 @@ DRAW_POSE_LANDMARKS:
 - *Brief*: Draws each point on pose landmark with a circle. Draws lines between each circle (currently only between major points to save time).
 
 PLOT_JOINT_ANGLES:
-- *Parameters*: CSV Path
+- *Parameters*: CSV Path, output directory.
 - *Returns*: none.
-- *Brief*: Loads the CSV. The knee angles over time and ankle angles over time are each plotted and saved on two .png files with timestamps.
+- *Brief*: Loads the CSV. The knee angles over time and ankle angles over time are each plotted and saved on two .png files with timestamps in the output directory.
