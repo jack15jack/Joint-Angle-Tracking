@@ -99,7 +99,7 @@ def main():
     cv2.destroyAllWindows()
     csv_file.close()
     
-    # plot ankle results
+    # plot results
     plot_joint_angles(OUTPUT_DIR, csv_filename)
 
 if __name__ == "__main__":
