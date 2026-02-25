@@ -1,13 +1,14 @@
 import os
 import cv2
 import mediapipe as mp
+import numpy as np
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
-from utils.pose import lm, compute_angle
+from utils.pose import lm, compute_angle, iso_gait_cycles, normalize_gait_cycles
 from utils.draw import draw_pose_landmarks
-from utils.io import create_csv_writer, plot_joint_angles
+from utils.io import create_csv_writer, plot_joint_angles, build_percent_cycle_csv, plot_iso_cycles
 
-# Important Notes: Press Q to end (otherwise, video will not be saved and data will not be plotted)
+# Important Note: Press Q to end (otherwise, video will not be saved and data will not be plotted)
 
 def main():
 
@@ -53,6 +54,7 @@ def main():
 
     # callback for asyncronous livestream results
     latest_frame = None
+    bio_data = []
     def result_callback(result, output_image, timestamp_ms):
         nonlocal latest_frame
 
@@ -77,6 +79,7 @@ def main():
 
         # csv logging
         csv_writer.writerow([timestamp_ms, left_knee, right_knee, left_ankle, right_ankle])
+        bio_data.append([timestamp_ms, left_knee, right_knee, left_ankle, right_ankle])
 
     options = PoseLandmarkerOptions(
         base_options=BaseOptions(model_asset_path=model_path),
@@ -117,8 +120,19 @@ def main():
     vid_writer.release()
     cv2.destroyAllWindows()
     csv_file.close()
+    
+    # isolate gait cycles
+    bio_data_np = np.array(bio_data)
+    left_knee = bio_data_np[:, 1]
+    cycles = iso_gait_cycles(left_knee, fps)
 
-    # plot results
+    # plot normalized and averaged gait cycles
+    if len(cycles) > 1:
+        normalized_cycles = normalize_gait_cycles(cycles, fps)
+        build_percent_cycle_csv(OUTPUT_DIR, normalized_cycles)
+        plot_iso_cycles(OUTPUT_DIR, normalized_cycles)
+
+    # plot joint angle results
     plot_joint_angles(OUTPUT_DIR, csv_filename)
 
 
