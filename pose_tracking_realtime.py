@@ -4,6 +4,7 @@ import mediapipe as mp
 import numpy as np
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
+from utils.data_transfer import transfer_data
 from utils.pose import lm, compute_angle, iso_gait_cycles, normalize_gait_cycles
 from utils.draw import draw_pose_landmarks
 from utils.io import create_csv_writer, plot_joint_angles, build_percent_cycle_csv, plot_iso_cycles
@@ -20,8 +21,8 @@ def main():
         raise RuntimeError("Error opening webcam")
 
     # change to set resolution
-    width = 1280
-    height = 720
+    width = 1920
+    height = 1080
 
     capture.set(cv2.CAP_PROP_FRAME_WIDTH, width)
     capture.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
@@ -67,6 +68,8 @@ def main():
 
         pose_lm = result.pose_landmarks[0]
         draw_pose_landmarks(frame_bgr, pose_lm)
+
+        transfer_data(pose_lm)
 
         # save for display + video writing
         latest_frame = frame_bgr.copy()
@@ -123,8 +126,8 @@ def main():
     
     # isolate gait cycles
     bio_data_np = np.array(bio_data)
-    left_knee = bio_data_np[:, 1]
-    cycles = iso_gait_cycles(left_knee, fps)
+    right_knee = bio_data_np[:, 2]
+    cycles = iso_gait_cycles(right_knee, fps)
 
     # plot normalized and averaged gait cycles
     if len(cycles) > 1:

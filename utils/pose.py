@@ -25,6 +25,27 @@ def compute_angle (a, b, c):
     )
     return angle
 
+# project vectors onto sagittal or frontal planes, returning a signed angle
+def angle_in_plane(a, b, plane="sagittal"):
+    a = np.array(a)
+    b = np.array(b)
+
+    if plane == "sagittal":
+        a = a[[1,2]]
+        b = b[[1,2]]
+    elif plane == "frontal":
+        a = a[[0,1]]
+        b = b[[0,1]]
+
+    angle = np.degrees(np.arccos(
+        np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+    ))
+
+    # sign from 2D cross product
+    cross = np.cross(np.append(a, 0), np.append(b, 0))
+    return angle * np.sign(cross[2])
+
+# isolates gait cycles, returning a list of cycles
 def iso_gait_cycles(knee_data, fps):
     knee_smooth = savgol_filter(knee_data, window_length=11, polyorder=3)
     minima, _ = find_peaks(-knee_smooth, distance=fps*0.6, prominence=5)
@@ -38,6 +59,7 @@ def iso_gait_cycles(knee_data, fps):
         cycles.append(cycle)
     return cycles
 
+# normalizes a list of cycles into a percentage scale
 def normalize_gait_cycles(cycles, fps):
     normalized_cycles = []
 
@@ -53,7 +75,6 @@ def normalize_gait_cycles(cycles, fps):
         normalized_cycles.append(normalized)
 
     normalized_cycles_np = np.array(normalized_cycles)
-
     return normalized_cycles_np
 
 
