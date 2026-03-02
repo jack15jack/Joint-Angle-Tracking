@@ -31,11 +31,11 @@ def angle_in_plane(a, b, plane="sagittal"):
     b = np.array(b)
 
     if plane == "sagittal":
-        a = a[[1,2]]
-        b = b[[1,2]]
+        a = np.array([a[2], -a[1]])
+        b = np.array([b[2], -b[1]])
     elif plane == "frontal":
-        a = a[[0,1]]
-        b = b[[0,1]]
+        a = np.array([a[0], -a[1]])
+        b = np.array([b[0], -b[1]])
 
     angle = np.degrees(np.arccos(
         np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))

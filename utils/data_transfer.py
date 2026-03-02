@@ -42,15 +42,16 @@ def transfer_data(pose_lm):
     right_knee          = compute_angle(r_hip, r_knee, r_ank)
     left_ankle          = compute_angle(l_knee, l_ank, l_toe)
     right_ankle         = compute_angle(r_knee, r_ank, r_toe)
-    left_shoulder_flex  = angle_in_plane(torso, l_upper_arm, "sagittal")
-    right_shoulder_flex = angle_in_plane(torso, r_upper_arm, "sagittal")
-    left_shoulder_abd   = angle_in_plane(torso, l_upper_arm, "frontal")
-    right_shoulder_abd  = angle_in_plane(torso, r_upper_arm, "frontal")
-    left_hip_flex       = angle_in_plane(torso, l_thigh, "sagittal")
-    right_hip_flex      = angle_in_plane(torso, r_thigh, "sagittal")
-    left_hip_abd        = angle_in_plane(torso, l_thigh, "frontal")
-    right_hip_abd      = angle_in_plane(torso, r_thigh, "frontal")
+    left_shoulder_flex  = 180 - angle_in_plane(torso, l_upper_arm, "sagittal")
+    right_shoulder_flex = 180 - angle_in_plane(torso, r_upper_arm, "sagittal")
+    left_shoulder_abd   = 180 - angle_in_plane(torso, l_upper_arm, "frontal")
+    right_shoulder_abd  = 180 - angle_in_plane(torso, r_upper_arm, "frontal")
+    left_hip_flex       = 180 - angle_in_plane(torso, l_thigh, "sagittal")
+    right_hip_flex      = 180 - angle_in_plane(torso, r_thigh, "sagittal")
+    left_hip_abd        = 180 - angle_in_plane(torso, l_thigh, "frontal")
+    right_hip_abd       = 180 - angle_in_plane(torso, r_thigh, "frontal")
 
+    print("L Hip Flex:", left_hip_flex)
 
     # create json data
     data = {
