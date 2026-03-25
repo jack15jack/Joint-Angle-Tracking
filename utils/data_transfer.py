@@ -4,7 +4,8 @@ import numpy as np
 from utils.pose import compute_angle, lm, angle_in_plane
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-server_address = ('127.0.0.1', 5005)
+# local usage, would need to be expanded for multi-system setup (one computer for motion tracking, one for Unreal)
+server_address = ('127.0.0.1', 5005) 
 
 # calculate needed angles, create a json packet, and send it to unreal via UDP socket
 def transfer_data(pose_lm):
@@ -25,10 +26,11 @@ def transfer_data(pose_lm):
     l_toe  = lm(pose_lm, 31)
     r_toe = lm(pose_lm, 32)
 
-    # midpoints
+    # midpoints of hip and shoulder
     hip_center = [(l_hip[i] + r_hip[i]) / 2 for i in range(3)]
     shoulder_center = [(l_sh[i] + r_sh[i]) / 2 for i in range(3)]
-    # calculated vectors
+    
+    # calculated vectors (for use in angle in plane calculations)
     torso = np.array([shoulder_center[i] - hip_center[i] for i in range(3)])
     l_upper_arm = np.array([l_elb[i] - l_sh[i] for i in range(3)])
     r_upper_arm = np.array([r_elb[i] - r_sh[i] for i in range(3)])
@@ -49,7 +51,7 @@ def transfer_data(pose_lm):
     left_hip_flex       = angle_in_plane(torso, l_thigh, "sagittal")
     right_hip_flex      = angle_in_plane(torso, r_thigh, "sagittal")
     left_hip_abd        = angle_in_plane(torso, l_thigh, "frontal")
-    right_hip_abd      = angle_in_plane(torso, r_thigh, "frontal")
+    right_hip_abd       = angle_in_plane(torso, r_thigh, "frontal")
 
 
     # create json data

@@ -25,24 +25,21 @@ def compute_angle (a, b, c):
     )
     return angle
 
-# project vectors onto sagittal or frontal planes, returning a signed angle
+# project vectors onto sagittal or frontal planes, returning a signed angle 
 def angle_in_plane(a, b, plane="sagittal"):
-    a = np.array(a)
-    b = np.array(b)
+    a = np.array(a) 
+    b = np.array(b) 
+    if plane == "sagittal": 
+        a = a[[1,2]] 
+        b = b[[1,2]] 
+    elif plane == "frontal": 
+        a = a[[0,1]] 
+        b = b[[0,1]] 
 
-    if plane == "sagittal":
-        a = a[[1,2]]
-        b = b[[1,2]]
-    elif plane == "frontal":
-        a = a[[0,1]]
-        b = b[[0,1]]
-
-    angle = np.degrees(np.arccos(
-        np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
-    ))
-
-    # sign from 2D cross product
-    cross = np.cross(np.append(a, 0), np.append(b, 0))
+    angle = np.degrees(np.arccos( np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)) )) 
+    
+    #sign from 2D cross product 
+    cross = np.cross(np.append(a, 0), np.append(b, 0)) 
     return angle * np.sign(cross[2])
 
 # isolates gait cycles, returning a list of cycles
@@ -76,8 +73,6 @@ def normalize_gait_cycles(cycles, fps):
 
     normalized_cycles_np = np.array(normalized_cycles)
     return normalized_cycles_np
-
-
 
 #TODO: cycle variability
 #TODO: posture measurements
