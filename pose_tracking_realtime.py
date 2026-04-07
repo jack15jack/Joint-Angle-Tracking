@@ -13,9 +13,11 @@ from utils.io import create_csv_writer, plot_joint_angles, build_percent_cycle_c
 
 def main():
 
+    # sets output directory, creates if it doesn't exist
     OUTPUT_DIR = 'outputs'
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
+    # starts opencv video capture
     capture = cv2.VideoCapture(0)
     if not capture.isOpened():
         raise RuntimeError("Error opening webcam")
@@ -24,16 +26,19 @@ def main():
     width = 1920
     height = 1080
 
+    # set the width and height of capture frame
     capture.set(cv2.CAP_PROP_FRAME_WIDTH, width)
     capture.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
+    # get the fps
     fps = capture.get(cv2.CAP_PROP_FPS)
     if fps == 0:
         fps = 30  # fallback if webcam doesn't report FPS
 
+    # used to count frames
     frame_index = 0
 
-    # video writer for skeleton overlay
+    # video writer for skeleton overlay, masked video written and saved in outputs folder
     masked_filename = os.path.join(OUTPUT_DIR, "video_masked.mp4")
     vid_writer = cv2.VideoWriter(
         masked_filename,
@@ -66,12 +71,14 @@ def main():
         # MediaPipe RGB -> OpenCV BGR (for landmark drawing)
         frame_bgr = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
+        # draw pose landmarks on the frame
         pose_lm = result.pose_landmarks[0]
         draw_pose_landmarks(frame_bgr, pose_lm)
 
+        # send the needed data to unreal engine
         transfer_data(pose_lm)
 
-        # save for display + video writing
+        # save frame for display + video writing
         latest_frame = frame_bgr.copy()
 
         # calculate angles
@@ -82,8 +89,10 @@ def main():
 
         # csv logging
         csv_writer.writerow([timestamp_ms, left_knee, right_knee, left_ankle, right_ankle])
+        # save bio data to be processed after video is done
         bio_data.append([timestamp_ms, left_knee, right_knee, left_ankle, right_ankle])
 
+    # mediapipe config
     options = PoseLandmarkerOptions(
         base_options=BaseOptions(model_asset_path=model_path),
         running_mode=VisionRunningMode.LIVE_STREAM,
@@ -97,22 +106,25 @@ def main():
             if not ret:
                 break
             
-            # OpenCV BGR -> MediaPipe RGB
+            # convert: OpenCV BGR -> MediaPipe RGB
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
 
+            # send image to asyncronous detection
             timestamp_ms = int((frame_index / fps) * 1000)
             landmarker.detect_async(mp_image, timestamp_ms) # this will send the frame to the callback
 
-            # use annotated frame if available
+            # display annotated frame if available
             if latest_frame is not None:
                 display_frame = latest_frame
             else:
                 display_frame = frame
 
+            # start video display window
             cv2.imshow("Live Pose", display_frame)
             vid_writer.write(display_frame)
 
+            # for timestamp
             frame_index += 1
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -125,7 +137,16 @@ def main():
     csv_file.close()
     
     # isolate gait cycles
+    if len(bio_data) == 0:
+        print("No pose data collected.")
+        return
+
     bio_data_np = np.array(bio_data)
+
+    if bio_data_np.ndim < 2 or bio_data_np.shape[1] < 5:
+        print("Invalid data shape:", bio_data_np.shape)
+        return
+
     right_knee = bio_data_np[:, 2]
     cycles = iso_gait_cycles(right_knee, fps)
 
