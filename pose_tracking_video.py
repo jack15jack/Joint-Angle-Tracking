@@ -101,8 +101,8 @@ def main():
     
     # isolate gait cycles
     bio_data_np = np.array(bio_data)
-    left_knee = bio_data_np[:, 1]
-    cycles = iso_gait_cycles(left_knee, fps)
+    right_knee = bio_data_np[:, 1]
+    cycles = iso_gait_cycles(right_knee, fps)
 
     # plot normalized and averaged gait cycles
     if len(cycles) > 1:

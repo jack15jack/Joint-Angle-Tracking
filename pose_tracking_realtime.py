@@ -17,8 +17,8 @@ def main():
     OUTPUT_DIR = 'outputs'
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-    # starts opencv video capture
-    capture = cv2.VideoCapture(0)
+    # starts opencv video capture, change number for different webcam connections
+    capture = cv2.VideoCapture(1)
     if not capture.isOpened():
         raise RuntimeError("Error opening webcam")
 
