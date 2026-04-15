@@ -8,6 +8,14 @@ def lm(pose_landmarks, i):
            pose_landmarks[i].y,
            pose_landmarks[i].z]
 
+# returns bool - if a lm is visible and present
+def valid_landmarks(pose_lm, indices, vis_thresh=0.6, pres_thresh=0.6):
+    for i in indices:
+        lm = pose_lm[i]
+        if lm.visibility < vis_thresh or lm.presence < pres_thresh:
+            return False
+    return True
+
 # basic angle computation
 def compute_angle (a, b, c):
     # convert to numpy arrays
@@ -74,10 +82,17 @@ def normalize_gait_cycles(cycles, fps):
     normalized_cycles_np = np.array(normalized_cycles)
     return normalized_cycles_np
 
+#TODO: velocity, acceleration
+def get_velo_accel(hip_angle, prev_hip_angle, prev_hip_velo, fps):
+    dt = 1 / fps
+    hip_velo = (hip_angle - prev_hip_angle) / dt
+    hip_acc = (hip_velo - prev_hip_velo) / dt
+    return hip_velo, hip_acc 
+        
+
 #TODO: cycle variability
 #TODO: posture measurements
-#TODO: ROM for knees and ankles
-#TODO: foot velocity, acceleration
+#TODO: ROM
 #TODO: step timing, cadence
 #TODO: vertical lift height
 

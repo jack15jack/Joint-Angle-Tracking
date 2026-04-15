@@ -12,7 +12,7 @@ def create_csv_writer(OUTPUT_DIR):
     writer = csv.writer(f)
     writer.writerow([
         "time_ms", "left_knee", "right_knee",
-        "left_ankle", "right_ankle"
+        "left_ankle", "right_ankle", "left_hip", "right_hip"
     ])
     return writer, filename, f
 
@@ -76,6 +76,21 @@ def plot_joint_angles(OUTPUT_DIR, csv_path="joint_angles.csv"):
     plt.savefig(ankle_filename)
     plt.close()
     print(f"Saved ankle angles plot as {ankle_filename}")
+
+    # Plot hips
+    plt.figure(figsize=(10,5))
+    plt.plot(time_s, df["left_hip"], label="Left Hip", color="blue")
+    plt.plot(time_s, df["right_hip"], label="Right Hip", color="red")
+    plt.xlabel("Time (s)")
+    plt.ylabel("Angle (deg)")
+    plt.title("Hip Angles Over Time")
+    plt.legend()
+    plt.grid(True)
+
+    hip_filename = os.path.join(OUTPUT_DIR, f"hip_angles_{timestamp_str}.png")
+    plt.savefig(hip_filename)
+    plt.close()  # close figure to free memory
+    print(f"Saved hip angles plot as {hip_filename}")
 
 def plot_iso_cycles(OUTPUT_DIR, normalized_cycles):
     percent = np.linspace(0, 100, 100)

@@ -5,7 +5,7 @@ import numpy as np
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 from utils.data_transfer import transfer_data
-from utils.pose import lm, compute_angle, iso_gait_cycles, normalize_gait_cycles
+from utils.pose import lm, compute_angle, iso_gait_cycles, normalize_gait_cycles, valid_landmarks, angle_in_plane
 from utils.draw import draw_pose_landmarks
 from utils.io import create_csv_writer, plot_joint_angles, build_percent_cycle_csv, plot_iso_cycles
 
@@ -18,7 +18,7 @@ def main():
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     # starts opencv video capture, change number for different webcam connections
-    capture = cv2.VideoCapture(1)
+    capture = cv2.VideoCapture(0)
     if not capture.isOpened():
         raise RuntimeError("Error opening webcam")
 
@@ -60,6 +60,7 @@ def main():
 
     # callback for asyncronous livestream results
     latest_frame = None
+    last_valid_pose = None
     bio_data = []
     def result_callback(result, output_image, timestamp_ms):
         nonlocal latest_frame
@@ -76,21 +77,39 @@ def main():
         draw_pose_landmarks(frame_bgr, pose_lm)
 
         # send the needed data to unreal engine
+        nonlocal last_valid_pose
+        LOWER_BODY_IDXS = [23, 24, 25, 26, 27, 28, 31, 32]
+
         transfer_data(pose_lm)
 
         # save frame for display + video writing
         latest_frame = frame_bgr.copy()
 
+        # landmarks
+        l_sh = np.array(lm(pose_lm, 11))
+        r_sh = np.array(lm(pose_lm, 12))
+        l_hip = np.array(lm(pose_lm, 23))
+        r_hip = np.array(lm(pose_lm, 24))
+        l_knee = np.array(lm(pose_lm, 25))
+        r_knee = np.array(lm(pose_lm, 26))
+        l_ank = np.array(lm(pose_lm, 27))
+        r_ank = np.array(lm(pose_lm, 28))
+        l_toe = np.array(lm(pose_lm, 31))
+        r_toe = np.array(lm(pose_lm, 32))
+        
+
         # calculate angles
-        left_knee = compute_angle(lm(pose_lm, 23), lm(pose_lm, 25), lm(pose_lm, 27))
-        right_knee = compute_angle(lm(pose_lm, 24), lm(pose_lm, 26), lm(pose_lm, 28))
-        left_ankle = compute_angle(lm(pose_lm, 25), lm(pose_lm, 27), lm(pose_lm, 31))
-        right_ankle = compute_angle(lm(pose_lm, 26), lm(pose_lm, 28), lm(pose_lm, 32))
+        left_knee = compute_angle(l_hip, l_knee, l_ank)
+        right_knee = compute_angle(r_hip, r_knee, r_ank)
+        left_ankle = compute_angle(l_knee, l_ank, l_toe)
+        right_ankle = compute_angle(r_knee, r_ank, r_toe)
+        left_hip_flex = compute_angle(l_sh, l_hip, l_knee)
+        right_hip_flex = compute_angle(r_sh, r_hip, r_knee)
 
         # csv logging
-        csv_writer.writerow([timestamp_ms, left_knee, right_knee, left_ankle, right_ankle])
+        csv_writer.writerow([timestamp_ms, left_knee, right_knee, left_ankle, right_ankle, left_hip_flex, right_hip_flex])
         # save bio data to be processed after video is done
-        bio_data.append([timestamp_ms, left_knee, right_knee, left_ankle, right_ankle])
+        bio_data.append([timestamp_ms, left_knee, right_knee, left_ankle, right_ankle, left_hip_flex, right_hip_flex])
 
     # mediapipe config
     options = PoseLandmarkerOptions(
@@ -143,7 +162,7 @@ def main():
 
     bio_data_np = np.array(bio_data)
 
-    if bio_data_np.ndim < 2 or bio_data_np.shape[1] < 5:
+    if bio_data_np.ndim < 2 or bio_data_np.shape[1] < 7:
         print("Invalid data shape:", bio_data_np.shape)
         return
 
