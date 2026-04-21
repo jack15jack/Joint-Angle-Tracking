@@ -5,14 +5,13 @@ import numpy as np
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 from utils.data_transfer import transfer_data
-from utils.pose import lm, compute_angle, iso_gait_cycles, normalize_gait_cycles, valid_landmarks, angle_in_plane
+from utils.pose import lm, compute_angle
 from utils.draw import draw_pose_landmarks
-from utils.io import create_csv_writer, plot_joint_angles, build_percent_cycle_csv, plot_iso_cycles
+from utils.io import create_csv_writer, plot_data
 
 # Important Note: Press Q to end (otherwise, video will not be saved and data will not be plotted)
 
 def main():
-
     # sets output directory, creates if it doesn't exist
     OUTPUT_DIR = 'outputs'
     os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -60,7 +59,6 @@ def main():
 
     # callback for asyncronous livestream results
     latest_frame = None
-    last_valid_pose = None
     bio_data = []
     def result_callback(result, output_image, timestamp_ms):
         nonlocal latest_frame
@@ -77,9 +75,6 @@ def main():
         draw_pose_landmarks(frame_bgr, pose_lm)
 
         # send the needed data to unreal engine
-        nonlocal last_valid_pose
-        LOWER_BODY_IDXS = [23, 24, 25, 26, 27, 28, 31, 32]
-
         transfer_data(pose_lm)
 
         # save frame for display + video writing
@@ -96,7 +91,6 @@ def main():
         r_ank = np.array(lm(pose_lm, 28))
         l_toe = np.array(lm(pose_lm, 31))
         r_toe = np.array(lm(pose_lm, 32))
-        
 
         # calculate angles
         left_knee = compute_angle(l_hip, l_knee, l_ank)
@@ -105,6 +99,8 @@ def main():
         right_ankle = compute_angle(r_knee, r_ank, r_toe)
         left_hip_flex = compute_angle(l_sh, l_hip, l_knee)
         right_hip_flex = compute_angle(r_sh, r_hip, r_knee)
+        
+        velo, accel = get_velo_accel(right_hip_flex)
 
         # csv logging
         csv_writer.writerow([timestamp_ms, left_knee, right_knee, left_ankle, right_ankle, left_hip_flex, right_hip_flex])
@@ -155,28 +151,8 @@ def main():
     cv2.destroyAllWindows()
     csv_file.close()
     
-    # isolate gait cycles
-    if len(bio_data) == 0:
-        print("No pose data collected.")
-        return
-
-    bio_data_np = np.array(bio_data)
-
-    if bio_data_np.ndim < 2 or bio_data_np.shape[1] < 7:
-        print("Invalid data shape:", bio_data_np.shape)
-        return
-
-    right_knee = bio_data_np[:, 2]
-    cycles = iso_gait_cycles(right_knee, fps)
-
-    # plot normalized and averaged gait cycles
-    if len(cycles) > 1:
-        normalized_cycles = normalize_gait_cycles(cycles, fps)
-        build_percent_cycle_csv(OUTPUT_DIR, normalized_cycles)
-        plot_iso_cycles(OUTPUT_DIR, normalized_cycles)
-
-    # plot joint angle results
-    plot_joint_angles(OUTPUT_DIR, csv_filename)
+    # plot data
+    plot_data(OUTPUT_DIR, csv_filename)
 
 
 if __name__ == "__main__":

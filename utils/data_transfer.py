@@ -1,22 +1,18 @@
 import socket
 import json
 import numpy as np
-from utils.pose import compute_angle, lm, angle_in_plane
+from utils.pose import compute_angle, lm
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 # local usage, would need to be expanded for multi-system setup (one computer for motion tracking, one for Unreal)
-server_address = ('127.0.0.1', 5005) 
+server_address = ('127.0.0.1', 5005)
 
-# calculate needed angles, create a json packet, and send it to unreal via UDP socket
+# calculate needed DATA, create a json packet, and send it to unreal via UDP socket
 def transfer_data(pose_lm):
 
     # names of landmarks for readability
     l_sh  = np.array(lm(pose_lm, 11))
     r_sh = np.array(lm(pose_lm, 12))
-    l_elb = np.array(lm(pose_lm, 13))
-    r_elb = np.array(lm(pose_lm, 14))
-    l_wrist = np.array(lm(pose_lm, 15))
-    r_wrist = np.array(lm(pose_lm, 16))
     l_hip  = np.array(lm(pose_lm, 23))
     r_hip = np.array(lm(pose_lm, 24))
     l_knee  = np.array(lm(pose_lm, 25))
@@ -32,7 +28,7 @@ def transfer_data(pose_lm):
     # ankles ( # reference model ankle is at ~90 degrees)
     left_ankle          = 90 - compute_angle(l_knee, l_ank, l_toe)
     right_ankle         = 90 - compute_angle(r_knee, r_ank, r_toe)
-    # hips
+    # hips (reference model is at 180 degrees, with negative angle going forwards)
     left_hip_flex = -1 * (180 - compute_angle(l_sh, l_hip, l_knee))
     right_hip_flex = -1 * (180 - compute_angle(r_sh, r_hip, r_knee))
 
@@ -46,16 +42,16 @@ def transfer_data(pose_lm):
         "rk": clamp(right_knee),
         "la": clamp(left_ankle),
         "ra": clamp(right_ankle),
-        "le": 0,
-        "re": 0,
-        "lsf": 0,
-        "rsf": 0,
-        "lsa": 0,
-        "rsa": 0,
+        "le": 0,  #left elbow
+        "re": 0,  #right elbow
+        "lsf": 0, #left shoulder flex
+        "rsf": 0, #right shoulder flex
+        "lsa": 0, #left shoulder abduction
+        "rsa": 0, #right shoulder abduction
         "lhf": clamp(left_hip_flex),
         "rhf": clamp(right_hip_flex),
-        "lha": 0,
-        "rha": 0
+        "lha": 0, #left hip abduction
+        "rha": 0  #right hip abduction
     }
 
     # setup socket and send json
