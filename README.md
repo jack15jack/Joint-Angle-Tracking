@@ -1,185 +1,267 @@
-# Live Webcam Pose Tracking with MEDIAPIPE POSE and OPENCV
+# Real-Time Human Pose Tracking and Gait Analysis
 
-This project performs real-time biomechanical gait analysis using OpenCV and MediaPipe Pose.
+A real-time human motion capture and gait analysis system built with **Python**, **MediaPipe**, **OpenCV**, and **NumPy**. The application estimates human pose from a webcam feed, computes lower-body joint kinematics, streams motion data to **Unreal Engine** via UDP, and performs post-processing to generate biomechanical visualizations and gait analysis results.
 
-Body landmarks are detected from a live webcam feed, joint angles are computed per frame, and full gait cycles are automatically segmented, normalized, averaged, and visualized.
-
-The system produces:
-
-- Live skeleton overlay video
-- Raw joint angle CSV data
-- Time-series joint plots
-- Isolated gait cycle CSV (0–100%)
-- Overlaid gait cycle visualization with mean trajectory
+The project combines computer vision, biomechanics, and real-time networking into a lightweight motion analysis pipeline requiring only a standard webcam.
 
 ---
 
-## System Overview
+## Features
 
-The pipeline performs:
-
-1. Live webcam capture  
-2. Real-time pose detection (MediaPipe Pose Landmarker)  
-3. Joint angle computation (knee and ankle)  
-4. CSV logging of raw time-series angles  
-5. Automatic gait cycle segmentation  
-6. Time normalization of each cycle (0–100%)  
-7. Overlay plotting of all cycles  
-8. Mean gait cycle computation and visualization  
-
----
-
-## Processing Pipeline
-
-### 1. Live Video Capture
-- Webcam accessed via `cv2.VideoCapture(0)`
-- Resolution configurable (default: 1280x720)
-- FPS automatically detected (fallback: 30 FPS)
-- Press **Q** to stop recording
-- Annotated video is saved to: outputs/video_masked.mp4
-
-
-### 2. Pose Detection
-
-- Uses MediaPipe Pose Landmarker (`pose_landmarker_heavy.task`)
-- Runs in `LIVE_STREAM` asynchronous mode
-- Landmarks are drawn on each frame
-- Frames displayed in real time
+* Real-time webcam pose estimation using MediaPipe Pose Landmarker
+* Live skeletal overlay visualization
+* Automatic computation of:
+  * Left & Right Knee Flexion
+  * Left & Right Ankle Angle
+  * Left & Right Hip Flexion
+* CSV logging of all joint angle data
+* Automatic generation of joint-angle plots
+* Real-time UDP streaming of joint angles to Unreal Engine
+* Automatic recording of annotated video
 
 ---
 
-### 3. Joint Angle Computation
+## Example Pipeline
 
-For every detected frame:
-
-- **Left knee angle**: hip → knee → ankle  
-- **Right knee angle**: hip → knee → ankle  
-- **Left ankle angle**: knee → ankle → toe  
-- **Right ankle angle**: knee → ankle → toe  
-
-Angles are computed using 3D vector geometry.
-
----
-
-### 4. Raw Data Logging
-
-Per frame, the following are written to CSV: 
-- time_ms
-- left_knee
-- right_knee
-- left_ankle
-- right_ankle
-Saved as: outputs/joint_angles_<timestamp>.csv
-
----
-
-## Gait Cycle Isolation and Normalization
-
-After recording ends:
-
-### Step 1 — Automatic Gait Cycle Detection
-
-- Left knee angle signal is smoothed (Savitzky-Golay filter)
-- Heel-strike events are approximated by detecting local minima
-- Each pair of consecutive minima defines one gait cycle
-
-Implemented in: iso_gait_cycles()
-
-
----
-
-### Step 2 — Time Normalization (0–100%)
-
-Each detected gait cycle is:
-
-- Resampled to 100 evenly spaced points  
-- Converted into percentage of gait cycle (0–100%)
-
-Implemented in: normalize_gait_cycles()
-
-Resulting array shape: (num_cycles, 100)
-
-Each row representes one isolated gait cycle
-
----
-
-### Step 3 — Percent Gait Cycle CSV Export
-
-A second CSV file is generated: outputs/isolated_gait_cycles.csv
-
-Columns:
-- Percent_Gait
-- Cycle_1
-- Cycle_2
-- ...
-- Cycle_N
-- Mean
-
-This file enables:
-
-- Cross-cycle comparison  
-- Machine learning feature extraction  
-- Statistical variability analysis  
-
----
-
-## Gait Cycle Visualization
-
-An overlay plot is generated: outputs/gait_cycles_<timestamp>.png
-
-Visualization includes:
-- All individual cycles (semi-transparent)
-- Mean gait cycle (thick, dominant curve)
-
----
-
-## Time-Series Joint Plots
-
-Separate plots are generated for:
-- Knee angles over time
-- Ankle angles over time
-
-Saved as:
-outputs/knee_angles_<timestamp>.png
-outputs/ankle_angles_<timestamp>.png
+```
+Webcam
+   │
+   ▼
+OpenCV Video Capture
+   │
+   ▼
+MediaPipe Pose Estimation
+   │
+   ├───────────────► UDP Stream
+   │                     │
+   │                     ▼
+   │              Unreal Engine
+   │
+   ▼
+Joint Angle Computation
+   │
+   ▼
+CSV Logging
+   │
+   ▼
+Biomechanical Analysis
+   │
+   ▼
+Joint Angle Plots
+```
 
 ---
 
 ## Project Structure
-pose_tracking_realtime.py (for real time usage)
-pose_tracking_video.py (for videoo usage)
-utils/
-pose.py (computations and gait segmentation)
-draw.py (landmark drawing)
-io.py (csv creation + plotting utilities)
+
+```
+.
+├── main.py
+├── pose_landmarker_heavy.task
+├── outputs/
+└── utils/
+    ├── data_transfer.py
+    ├── draw.py
+    ├── io.py
+    └── pose.py
+```
+
+---
+
+## Technologies
+
+* Python 3.0+
+* MediaPipe Tasks
+* OpenCV
+* NumPy
+* SciPy
+* Pandas
+* Matplotlib
+* UDP Sockets
+
+---
+
+## Installation
+
+Clone the repository:
+
+```bash
+git clone https://github.com/jack15jack/Joint-Angle-Tracking.git
+cd Joint-Angle-Tracking
+```
+
+Install dependencies:
+
+```bash
+pip install mediapipe opencv-python numpy scipy pandas matplotlib
+```
+
+Download the MediaPipe pose model:
+
+```
+pose_landmarker_heavy.task
+```
+
+and place it in the project root.
+
+---
+
+## Running
+
+Simply execute:
+
+```bash
+python main.py
+```
+
+A webcam window will open showing the live skeleton overlay.
+
+> **Important:** Press **Q** to exit the program properly. Closing the window directly will prevent the video and plots from being saved.
+
+---
+
+## Output Files
+
+After each recording session, the program automatically generates an `outputs/` directory containing:
+
+```
 outputs/
+├── video_masked.mp4
+├── joint_angles_YYYYMMDD_HHMMSS.csv
+├── knee_angles_*.png
+├── ankle_angles_*.png
+└── hip_angles_*.png
+```
+
+### Video
+
+Annotated recording with the detected pose skeleton.
+
+### CSV
+
+Timestamped joint angle measurements for:
+
+* Left Knee
+* Right Knee
+* Left Ankle
+* Right Ankle
+* Left Hip
+* Right Hip
+
+### Joint Angle Plots
+
+Automatically generated figures showing each joint angle over time.
 
 ---
 
-## How to Run
+## Unreal Engine Integration
 
-1. Ensure webcam is connected  
-2. Place `pose_landmarker_heavy.task` in project root  
-3. Run the script  
-4. Walk naturally in frame  
-5. Press **Q** to stop recording  
+Joint angles are streamed in real time using UDP packets.
 
-Outputs will appear in: outputs/
+Default configuration:
 
-## Notes
+```
+IP Address : 127.0.0.1
+Port       : 5005
+```
 
-- At least two full gait cycles are required for normalization and overlay plotting.
-- If insufficient cycles are detected, only raw joint plots will be generated.
-- Peak detection parameters may need tuning for slow or atypical gait.
+The transmitted JSON packet contains:
+
+```json
+{
+  "lk": 0,
+  "rk": 0,
+  "la": 0,
+  "ra": 0,
+  "lhf": 0,
+  "rhf": 0
+}
+```
+
+along with placeholder values for additional joints.
+
+This allows Unreal Engine to animate a skeletal model directly from the tracked human motion.
 
 ---
 
-## Potential Extensions
+## Joint Angle Calculations
 
-- Symmetry Analysis
-- Balance Analysis (forward/lateral lean)
-- Micro-phase detection  
-- Cycle-to-cycle variability metrics
-- Cadence and step timing calculation  
-- Fall risk related data derivation
-- Feature extraction for ML models   
+The system computes anatomical joint angles from MediaPipe landmarks using vector geometry.
+
+### Knee Flexion
+
+Computed using:
+
+* Hip
+* Knee
+* Ankle
+
+### Ankle Angle
+
+Computed using:
+
+* Knee
+* Ankle
+* Toe
+
+### Hip Flexion
+
+Computed using:
+
+* Shoulder
+* Hip
+* Knee
+
+All calculations are performed in real time for every captured frame.
+
+---
+
+## Current Limitations
+
+* Single-person tracking
+* Webcam-based 3D pose estimation
+* Lower-body analysis only
+* Requires good lighting conditions
+* No calibration to anatomical reference frames
+* Uses MediaPipe's estimated 3D landmarks rather than marker-based motion capture
+
+---
+
+## Future Improvements
+
+* Gait Isolation
+* Fall Risk Detection
+* Range of motion (ROM) calculations
+* Step length estimation
+* Walking speed estimation
+* Posture analysis
+* Vertical center-of-mass displacement
+* Joint angular velocity and acceleration
+* Temporal gait parameters
+* Network support for remote Unreal Engine visualization
+
+---
+
+## Applications
+
+Potential applications include:
+
+* Digital Twin
+* Biomechanics research
+* Physical therapy
+* Rehabilitation monitoring
+* Sports performance analysis
+* Animation and virtual production
+* Robotics
+* Educational demonstrations
+
+---
+
+## Acknowledgments
+
+This project utilizes:
+
+* Google's MediaPipe Pose Landmarker for real-time pose estimation
+* OpenCV for image capture and visualization
+* NumPy and SciPy for numerical computation
+* Matplotlib and Pandas for data visualization and analysis
