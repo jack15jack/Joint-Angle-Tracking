@@ -60,6 +60,7 @@ def main():
 
     # callback for asyncronous livestream results
     latest_frame = None
+    last_valid_pose = None
     bio_data = []
     def result_callback(result, output_image, timestamp_ms):
         nonlocal latest_frame

@@ -8,6 +8,14 @@ def lm(pose_landmarks, i):
            pose_landmarks[i].y,
            pose_landmarks[i].z]
 
+# returns bool - if a lm is visible and present
+def valid_landmarks(pose_lm, indices, vis_thresh=0.6, pres_thresh=0.6):
+    for i in indices:
+        lm = pose_lm[i]
+        if lm.visibility < vis_thresh or lm.presence < pres_thresh:
+            return False
+    return True
+
 # basic angle computation
 def compute_angle (a, b, c):
     # convert to numpy arrays

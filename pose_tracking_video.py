@@ -3,10 +3,9 @@ import cv2
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
-import numpy as np
-from utils.pose import lm, compute_angle, iso_gait_cycles, normalize_gait_cycles
+from utils.pose import lm, compute_angle
 from utils.draw import draw_pose_landmarks
-from utils.io import create_csv_writer, plot_joint_angles, build_percent_cycle_csv, plot_iso_cycles
+from utils.io import create_csv_writer, plot_joint_angles
 
 def main():
 

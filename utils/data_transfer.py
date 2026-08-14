@@ -30,7 +30,7 @@ def transfer_data(pose_lm):
     left_knee           = 180 - compute_angle(l_hip, l_knee, l_ank)
     right_knee          = 180 - compute_angle(r_hip, r_knee, r_ank)
     # ankles ( # reference model ankle is at ~90 degrees)
-    left_ankle          = compute_angle(l_knee, l_ank, l_toe) -90
+    left_ankle          = compute_angle(l_knee, l_ank, l_toe) - 90
     right_ankle         = compute_angle(r_knee, r_ank, r_toe) - 90
     # hips
     left_hip_flex = -1 * (180 - compute_angle(l_sh, l_hip, l_knee))
