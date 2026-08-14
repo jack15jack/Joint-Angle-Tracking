@@ -98,17 +98,6 @@ def main():
     vid_writer.release()
     cv2.destroyAllWindows()
     csv_file.close()
-    
-    # isolate gait cycles
-    bio_data_np = np.array(bio_data)
-    left_knee = bio_data_np[:, 1]
-    cycles = iso_gait_cycles(left_knee, fps)
-
-    # plot normalized and averaged gait cycles
-    if len(cycles) > 1:
-        normalized_cycles = normalize_gait_cycles(cycles, fps)
-        build_percent_cycle_csv(OUTPUT_DIR, normalized_cycles)
-        plot_iso_cycles(OUTPUT_DIR, normalized_cycles)
 
     # plot results
     plot_joint_angles(OUTPUT_DIR, csv_filename)
