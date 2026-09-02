@@ -16,7 +16,7 @@ def create_csv_writer(OUTPUT_DIR):
     ])
     return writer, filename, f
 
-def plot_data(OUTPUT_DIR, csv_path="joint_angles.csv"):
+def plot_joint_angles(OUTPUT_DIR, csv_path="joint_angles.csv"):
     # Load the CSV
     df = pd.read_csv(csv_path)
     time_s = df["time_ms"] / 1000  # convert to seconds

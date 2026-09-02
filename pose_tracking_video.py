@@ -3,10 +3,9 @@ import cv2
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
-import numpy as np
-from utils.pose import lm, compute_angle, iso_gait_cycles, normalize_gait_cycles
+from utils.pose import lm, compute_angle
 from utils.draw import draw_pose_landmarks
-from utils.io import create_csv_writer, plot_data, build_percent_cycle_csv, plot_iso_cycles
+from utils.io import create_csv_writer, plot_joint_angles
 
 def main():
 
@@ -98,20 +97,9 @@ def main():
     vid_writer.release()
     cv2.destroyAllWindows()
     csv_file.close()
-    
-    # isolate gait cycles
-    bio_data_np = np.array(bio_data)
-    right_knee = bio_data_np[:, 1]
-    cycles = iso_gait_cycles(right_knee, fps)
-
-    # plot normalized and averaged gait cycles
-    if len(cycles) > 1:
-        normalized_cycles = normalize_gait_cycles(cycles, fps)
-        build_percent_cycle_csv(OUTPUT_DIR, normalized_cycles)
-        plot_iso_cycles(OUTPUT_DIR, normalized_cycles)
 
     # plot results
-    plot_data(OUTPUT_DIR, csv_filename)
+    plot_joint_angles(OUTPUT_DIR, csv_filename)
 
 if __name__ == "__main__":
     main()

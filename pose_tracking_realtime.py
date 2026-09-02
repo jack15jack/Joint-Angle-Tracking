@@ -6,6 +6,7 @@ from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 from utils.data_transfer import transfer_data
 from utils.pose import lm, compute_angle
+from utils.pose import lm, compute_angle
 from utils.draw import draw_pose_landmarks
 from utils.io import create_csv_writer, plot_data
 
@@ -148,9 +149,15 @@ def main():
     vid_writer.release()
     cv2.destroyAllWindows()
     csv_file.close()
-    
-    # plot data
-    plot_data(OUTPUT_DIR, csv_filename)
+
+    bio_data_np = np.array(bio_data)
+
+    if bio_data_np.ndim < 2 or bio_data_np.shape[1] < 7:
+        print("Invalid data shape:", bio_data_np.shape)
+        return
+
+    # plot joint angle results
+    plot_joint_angles(OUTPUT_DIR, csv_filename)
 
 
 if __name__ == "__main__":

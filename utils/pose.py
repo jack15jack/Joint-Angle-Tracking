@@ -24,4 +24,3 @@ def compute_angle (a, b, c):
     return angle
 
 
-
