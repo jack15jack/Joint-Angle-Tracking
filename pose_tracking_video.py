@@ -6,7 +6,7 @@ from mediapipe.tasks.python import vision
 import numpy as np
 from utils.pose import lm, compute_angle, iso_gait_cycles, normalize_gait_cycles
 from utils.draw import draw_pose_landmarks
-from utils.io import create_csv_writer, plot_joint_angles, build_percent_cycle_csv, plot_iso_cycles
+from utils.io import create_csv_writer, plot_data, build_percent_cycle_csv, plot_iso_cycles
 
 def main():
 
@@ -111,7 +111,7 @@ def main():
         plot_iso_cycles(OUTPUT_DIR, normalized_cycles)
 
     # plot results
-    plot_joint_angles(OUTPUT_DIR, csv_filename)
+    plot_data(OUTPUT_DIR, csv_filename)
 
 if __name__ == "__main__":
     main()

@@ -99,8 +99,6 @@ def main():
         right_ankle = compute_angle(r_knee, r_ank, r_toe)
         left_hip_flex = compute_angle(l_sh, l_hip, l_knee)
         right_hip_flex = compute_angle(r_sh, r_hip, r_knee)
-        
-        velo, accel = get_velo_accel(right_hip_flex)
 
         # csv logging
         csv_writer.writerow([timestamp_ms, left_knee, right_knee, left_ankle, right_ankle, left_hip_flex, right_hip_flex])
